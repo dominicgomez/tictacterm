@@ -1,12 +1,26 @@
 import curses
+import math
 
 
-NAME = 'tictacterm'
-VERSION = '1.0.0'
+PROG = 'tictacterm'
+VER = '1.0.0'
 YEAR = '2019'
 AUTHOR = 'Dominic Gomez'
-COPYRIGHT_NOTICE = 'Copyright '+YEAR+' '+AUTHOR
+COPR_NOTICE = 'Copyright '+YEAR+' '+AUTHOR
 
+HLINE = u'\u2500'
+PLUS = u'\u253C'
+VLINE = u'\u2502'
+CUR = u'\u2588'
+
+ROWS = 3
+COLS = 3
+# CELL_H = 1
+# CELL_W = 1
+# GRID = [
+#     PLUS.join([HLINE*CELL_WIDTH]*3)
+# ]
+# I'm just gonna do it the cheap way for now.
 GRID = [
     ' | | ',
     '-+-+-',
@@ -14,29 +28,46 @@ GRID = [
     '-+-+-',
     ' | | '
 ]
-TOKENS = ['X', 'O']
+
+PLAYERS = ['X', 'O']
 
 
-def main(stdscr):
+def main():
+    stdscr = curses.initscr()
+    _prepterm(stdscr)
+
     h, w = stdscr.getmaxyx()
 
-    stdscr.clear()
-    curses.curs_set(0)
-    stdscr.box()
-
     # Render the title.
-    y, x = 0, (w-len(NAME))//2
-    stdscr.addstr(y, x, NAME)
+    _, x = _center(stdscr, 1, len(PROG))
+    title_y, title_x = 0, x
+    stdscr.addstr(title_y, title_x, PROG)
 
-    # Render the copyright notice.
-    y, x = h-1, (w-len(COPYRIGHT_NOTICE))//2
-    stdscr.addstr(y, x, COPYRIGHT_NOTICE)
-
+    # Create the grid window.
+    lines, cols = len(GRID), max(len(ln) for ln in GRID)
+    grid_y, grid_x = _center(stdscr, lines, cols)
+    gridwin = stdscr.derwin(lines, cols, grid_y, grid_x)
     # Render the grid.
-    rows, cols = len(GRID), max(len(ln) for ln in GRID)
-    y, x = (h-rows)//2, (w-cols)//2
     for i, ln in enumerate(GRID):
-        stdscr.addstr(y+i, x, ln)
+        stdscr.addstr(grid_y+i, grid_x, ln)
+
+    # Create the player windows.
+    p1win = stdscr.derwin(h-3, grid_x-1, 1, 1)
+    p1win.box()
+    p2win = stdscr.derwin(h-3, w-(grid_x+cols)-1, 1, grid_x+cols)
+    p2win.box()
+
+    # Create the message window (2 cells narrower than the terminal window to
+    # avoid the border).
+    msgwin = stdscr.derwin(1, w-2, h-2, 1)
+    # Display the copyright notice in the message window.
+    msgwin.addstr(0, 0, COPR_NOTICE, curses.A_DIM)
+
+    # Create
+
+    # Render the cursor.
+    cursor_y, cursor_x = _termpos(1, 1)
+    gridwin.addstr(cursor_y, cursor_x, CUR, curses.A_BLINK)
 
     key = None
     while key != ord('q'):
@@ -48,11 +79,78 @@ def main(stdscr):
             pass
         elif key in [ord('l'), curses.KEY_RIGHT]:
             pass
+        elif key in [ord('\n'), ord(' ')]:
+            pass
 
         stdscr.refresh()
+        gridwin.refresh()
+        p1win.refresh()
+        p2win.refresh()
+        msgwin.refresh()
 
         key = stdscr.getch()
 
+    _resetterm(stdscr)
+
+
+def _prepterm(stdscr):
+    # Prepare the terminal for rendering.
+
+    # These changes must be reset when the program terminates.
+    curses.noecho()
+    curses.cbreak()
+    stdscr.keypad(True)
+
+    curses.curs_set(False)
+    if curses.has_colors():
+        curses.start_color()
+        curses.use_default_colors()
+        curses.init_pair(1, curses.COLOR_RED, -1)
+        curses.init_pair(2, curses.COLOR_GREEN, -1)
+        curses.init_pair(3, curses.COLOR_YELLOW, -1)
+        curses.init_pair(4, curses.COLOR_BLUE, -1)
+        curses.init_pair(5, curses.COLOR_MAGENTA, -1)
+        curses.init_pair(6, curses.COLOR_CYAN, -1)
+
+    stdscr.clear()
+    stdscr.box()
+
+
+def _termpos(row, col):
+    if (row, col) == (0, 0):
+        return (0, 0)
+    elif (row, col) == (0, 1):
+        return (0, 2)
+    elif (row, col) == (0, 2):
+        return (0, 4)
+    elif (row, col) == (1, 0):
+        return (2, 0)
+    elif (row, col) == (1, 1):
+        return (2, 2)
+    elif (row, col) == (1, 2):
+        return (2, 4)
+    elif (row, col) == (2, 0):
+        return (4, 0)
+    elif (row, col) == (2, 1):
+        return (4, 2)
+    elif (row, col) == (2, 2):
+        return (4, 4)
+    else:
+        pass
+
+
+def _center(win, elem_h, elem_w):
+    h, w = win.getmaxyx()
+    return math.floor((h-elem_h)/2), math.floor((w-elem_w)/2)
+
+
+def _resetterm(stdscr):
+    # Reset changes made to the terminal on startup.
+    stdscr.keypad(False)
+    curses.nocbreak()
+    curses.echo()
+    curses.endwin()
+
 
 if __name__ == '__main__':
-    curses.wrapper(main)
+    main()
