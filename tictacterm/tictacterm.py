@@ -1,3 +1,4 @@
+import abc
 import curses
 import math
 import sys
@@ -5,9 +6,9 @@ import sys
 
 PROG = 'tictacterm'
 VER = '1.0.0'
-YEAR = '2019'
+PUBL_YEAR = '2019'
 AUTHOR = 'Dominic Gomez'
-COPR_NOTICE = 'Copyright '+YEAR+' '+AUTHOR
+COPR_LN = u'\u00A9'+PUBL_YEAR+' '+AUTHOR
 
 HLINE = u'\u2500'
 PLUS = u'\u253C'
@@ -16,8 +17,8 @@ CUR = u'\u2588'
 
 ROWS = 3
 COLS = 3
-# CELL_H = 1
-# CELL_W = 1
+CELL_H = 4
+CELL_W = 4
 # GRID = [
 #     PLUS.join([HLINE*CELL_WIDTH]*3)
 # ]
@@ -33,6 +34,30 @@ GRID = [
 PLAYERS = ['X', 'O']
 
 
+class Scene(abc.ABC):
+    def __init__(self):
+        abc.ABC.__init__()
+        self.successor = self
+
+    @abc.abstractmethod
+    def on_input(self, key):
+        pass
+
+    @abc.abstractmethod
+    def update(self):
+        pass
+
+    @abc.abstractmethod
+    def render(self, win):
+        pass
+
+    def load(self, successor):
+        self.successor = successor
+
+    def kill(self):
+        self.load(None)
+
+
 def main():
     stdscr = curses.initscr()
     _prepterm(stdscr)
@@ -45,8 +70,8 @@ def main():
     instr = 'Press any key to continue'
     instr_y, instr_x = _center(stdscr, 1, len(instr))
     stdscr.addstr(instr_y, instr_x, instr, curses.A_BLINK | curses.A_STANDOUT)
-    _, copr_notice_x = _center(stdscr, 1, len(COPR_NOTICE))
-    stdscr.addstr(h-1, copr_notice_x, COPR_NOTICE, curses.A_DIM)
+    _, copr_notice_x = _center(stdscr, 1, len(COPR_LN))
+    stdscr.addstr(h-1, copr_notice_x, COPR_LN, curses.A_DIM)
     # Remain on this screen until the user presses a key.
     while True:
         key = stdscr.getch()
@@ -88,7 +113,7 @@ def main():
     # avoid the border).
     msgwin = stdscr.derwin(1, w-2, h-2, 1)
     # Display the copyright notice in the message window.
-    msgwin.addstr(0, 0, COPR_NOTICE, curses.A_DIM)
+    msgwin.addstr(0, 0, COPR_LN, curses.A_DIM)
 
     # Render the cursor.
     cur_y, cur_x = _termpos(1, 1)
@@ -116,6 +141,10 @@ def main():
         key = stdscr.getch()
 
     _resetterm(stdscr)
+
+
+def render_title_win(win):
+    pass
 
 
 def _prepterm(stdscr):
