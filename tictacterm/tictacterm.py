@@ -7,13 +7,13 @@ YEAR = '2019'
 AUTHOR = 'Dominic Gomez'
 COPYRIGHT_NOTICE = 'Copyright '+YEAR+' '+AUTHOR
 
-GRID = '\n'.join([
+GRID = [
     ' | | ',
     '-+-+-',
     ' | | ',
     '-+-+-',
     ' | | '
-])
+]
 TOKENS = ['X', 'O']
 
 
@@ -23,15 +23,31 @@ def main(stdscr):
     stdscr.clear()
     stdscr.box()
 
-    stdscr.addstr(0, 2, NAME+' ('+VERSION+')')
-    stdscr.addstr(h-2, (w-len(COPYRIGHT_NOTICE))//2, COPYRIGHT_NOTICE)
+    # Render the title.
+    y, x = 0, (w-len(NAME))//2
+    stdscr.addstr(y, x, NAME)
+
+    # Render the copyright notice.
+    y, x = h-1, (w-len(COPYRIGHT_NOTICE))//2
+    stdscr.addstr(y, x, COPYRIGHT_NOTICE)
+
+    #
+    stdscr.addstr(
+        (h-len(GRID))//2,
+        (w-max(len(ln) for ln in GRID))//2,
+        '\n'.join(GRID)
+    )
 
     key = None
     while key != ord('q'):
-        if key == curses.KEY_MOUSE:
-            iden, x, y, _, bstate = curses.getmouse()
-            stdscr.addstr(0, 0, 'x: '+str(x))
-            stdscr.addstr(1, 0, 'y: '+str(y))
+        if key in [ord('h'), curses.KEY_LEFT]:
+            pass
+        elif key in [ord('j'), curses.KEY_DOWN]:
+            pass
+        elif key in [ord('k'), curses.KEY_UP]:
+            pass
+        elif key in [ord('l'), curses.KEY_RIGHT]:
+            pass
 
         stdscr.refresh()
 
