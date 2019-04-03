@@ -1,5 +1,6 @@
 import curses
 import math
+import sys
 
 
 PROG = 'tictacterm'
@@ -38,6 +39,27 @@ def main():
 
     h, w = stdscr.getmaxyx()
 
+    # Render the title screen.
+    _, title_x = _center(stdscr, 1, len(PROG))
+    stdscr.addstr(0, title_x, PROG, curses.A_STANDOUT)
+    instr = 'Press any key to continue'
+    instr_y, instr_x = _center(stdscr, 1, len(instr))
+    stdscr.addstr(instr_y, instr_x, instr, curses.A_BLINK)
+    _, copr_notice_x = _center(stdscr, 1, len(COPR_NOTICE))
+    stdscr.addstr(h-1, copr_notice_x, COPR_NOTICE, curses.A_DIM)
+    # Remain on this screen until the user presses a key.
+    while True:
+        key = stdscr.getch()
+        if key == ord('q'):
+            _resetterm(stdscr)
+            sys.exit()
+        else:
+            stdscr.clear()
+            stdscr.box()
+            break
+
+        stdscr.refresh()
+
     # Render the title.
     _, x = _center(stdscr, 1, len(PROG))
     title_y, title_x = 0, x
@@ -57,13 +79,9 @@ def main():
     p2win = stdscr.derwin(h-3, w-(grid_x+cols)-1, 1, grid_x+cols)
     # Render the player labels.
     p1label_y, p1label_x = _center(p1win, 1, len(PLAYERS[0]))
+    p1win.addstr(p1label_y, p1label_x, PLAYERS[0], curses.color_pair(1))
+
     p2label_y, p2label_x = _center(p2win, 1, len(PLAYERS[1]))
-    p1win.addstr(
-        p1label_y,
-        p1label_x,
-        PLAYERS[0],
-        curses.color_pair(1) | curses.A_STANDOUT
-    )
     p2win.addstr(p2label_y, p2label_x, PLAYERS[1], curses.color_pair(4))
 
     # Create the message window (2 cells narrower than the terminal window to
@@ -73,8 +91,8 @@ def main():
     msgwin.addstr(0, 0, COPR_NOTICE, curses.A_DIM)
 
     # Render the cursor.
-    cursor_y, cursor_x = _termpos(1, 1)
-    gridwin.addstr(cursor_y, cursor_x, CUR, curses.A_BLINK)
+    cur_y, cur_x = _termpos(1, 1)
+    gridwin.addstr(cur_y, cur_x, CUR, curses.A_BLINK)
 
     key = None
     while key != ord('q'):
@@ -120,10 +138,10 @@ def _prepterm(stdscr):
         curses.init_pair(6, curses.COLOR_CYAN, -1)
 
     stdscr.clear()
-    stdscr.box()
 
 
 def _termpos(row, col):
+    #
     if (row, col) == (0, 0):
         return (0, 0)
     elif (row, col) == (0, 1):
@@ -147,6 +165,7 @@ def _termpos(row, col):
 
 
 def _center(win, elem_h, elem_w):
+    #
     h, w = win.getmaxyx()
     return math.floor((h-elem_h)/2), math.floor((w-elem_w)/2)
 
