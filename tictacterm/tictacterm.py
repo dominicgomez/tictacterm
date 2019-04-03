@@ -41,10 +41,10 @@ def main():
 
     # Render the title screen.
     _, title_x = _center(stdscr, 1, len(PROG))
-    stdscr.addstr(0, title_x, PROG, curses.A_STANDOUT)
+    stdscr.addstr(0, title_x, PROG, curses.A_BOLD)
     instr = 'Press any key to continue'
     instr_y, instr_x = _center(stdscr, 1, len(instr))
-    stdscr.addstr(instr_y, instr_x, instr, curses.A_BLINK)
+    stdscr.addstr(instr_y, instr_x, instr, curses.A_BLINK | curses.A_STANDOUT)
     _, copr_notice_x = _center(stdscr, 1, len(COPR_NOTICE))
     stdscr.addstr(h-1, copr_notice_x, COPR_NOTICE, curses.A_DIM)
     # Remain on this screen until the user presses a key.
