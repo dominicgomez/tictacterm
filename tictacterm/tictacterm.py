@@ -47,23 +47,30 @@ def main():
     lines, cols = len(GRID), max(len(ln) for ln in GRID)
     grid_y, grid_x = _center(stdscr, lines, cols)
     gridwin = stdscr.derwin(lines, cols, grid_y, grid_x)
+    # gridwin.box() makes something fail. FIXME
     # Render the grid.
     for i, ln in enumerate(GRID):
         stdscr.addstr(grid_y+i, grid_x, ln)
 
     # Create the player windows.
     p1win = stdscr.derwin(h-3, grid_x-1, 1, 1)
-    p1win.box()
     p2win = stdscr.derwin(h-3, w-(grid_x+cols)-1, 1, grid_x+cols)
-    p2win.box()
+    # Render the player labels.
+    p1label_y, p1label_x = _center(p1win, 1, len(PLAYERS[0]))
+    p2label_y, p2label_x = _center(p2win, 1, len(PLAYERS[1]))
+    p1win.addstr(
+        p1label_y,
+        p1label_x,
+        PLAYERS[0],
+        curses.color_pair(1) | curses.A_STANDOUT
+    )
+    p2win.addstr(p2label_y, p2label_x, PLAYERS[1], curses.color_pair(4))
 
     # Create the message window (2 cells narrower than the terminal window to
     # avoid the border).
     msgwin = stdscr.derwin(1, w-2, h-2, 1)
     # Display the copyright notice in the message window.
     msgwin.addstr(0, 0, COPR_NOTICE, curses.A_DIM)
-
-    # Create
 
     # Render the cursor.
     cursor_y, cursor_x = _termpos(1, 1)
