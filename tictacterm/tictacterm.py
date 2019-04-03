@@ -21,6 +21,7 @@ def main(stdscr):
     h, w = stdscr.getmaxyx()
 
     stdscr.clear()
+    curses.curs_set(0)
     stdscr.box()
 
     # Render the title.
@@ -31,12 +32,11 @@ def main(stdscr):
     y, x = h-1, (w-len(COPYRIGHT_NOTICE))//2
     stdscr.addstr(y, x, COPYRIGHT_NOTICE)
 
-    #
-    stdscr.addstr(
-        (h-len(GRID))//2,
-        (w-max(len(ln) for ln in GRID))//2,
-        '\n'.join(GRID)
-    )
+    # Render the grid.
+    rows, cols = len(GRID), max(len(ln) for ln in GRID)
+    y, x = (h-rows)//2, (w-cols)//2
+    for i, ln in enumerate(GRID):
+        stdscr.addstr(y+i, x, ln)
 
     key = None
     while key != ord('q'):
